@@ -24,7 +24,7 @@ const getOrder = async (req, res) => {
     const order = await Order.findById(req.params.id).populate('user', 'name email');
     if (!order) return res.status(404).json({ message: 'Order not found' });
 
-    if (req.user.role !== 'admin' && order.user._id.toString() !== req.user._id.toString()) {
+    if (req.user.role !== 'admin' && (!order.user || order.user._id.toString() !== req.user._id.toString())) {
       return res.status(403).json({ message: 'Not authorised to view this order' });
     }
 

@@ -1,15 +1,15 @@
 const express = require('express');
-const { getRecipesByIngredient, getRecipeByName } = require('../controllers/recipeController');
+const { getRecipesFromCart, getRecipeByName } = require('../controllers/recipeController');
 const { protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
 router.use(protect);
 
-// GET /api/recipes?ingredient=tomato
-router.get('/', getRecipesByIngredient);
+// GET /api/recipes/from-cart — generate recipes from the user's current basket
+router.get('/from-cart', getRecipesFromCart);
 
-// GET /api/recipes/:name  e.g. /api/recipes/tomato%20soup
+// GET /api/recipes/:name — get full recipe for a named dish
 router.get('/:name', getRecipeByName);
 
 module.exports = router;

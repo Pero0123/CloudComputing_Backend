@@ -1,4 +1,4 @@
-// Uses the RapidAPI LLaMA endpoint to generate recipes from a given ingredient/vegetable.
+const Basket = require('../models/Basket');
 
 const callLlama = async (messages) => {
   const response = await fetch('https://open-ai21.p.rapidapi.com/conversationllama', {
@@ -18,18 +18,32 @@ const callLlama = async (messages) => {
   return response.json();
 };
 
-// GET /api/recipes?ingredient=tomato
-const getRecipesByIngredient = async (req, res) => {
-  const { ingredient } = req.query;
-  if (!ingredient) {
-    return res.status(400).json({ message: 'ingredient query param is required' });
-  }
-
+// GET /api/recipes/from-cart
+// Generates 5 recipe suggestions based on what is currently in the user's basket.
+const getRecipesFromCart = async (req, res) => {
   try {
+    const basket = await Basket.findOne({ user: req.user._id }).populate(
+      'items.product',
+      'name unit isActive'
+    );
+
+    const activeItems = basket
+      ? basket.items.filter((item) => item.product && item.product.isActive)
+      : [];
+
+    if (activeItems.length === 0) {
+      return res.status(400).json({ message: 'Your cart is empty' });
+    }
+
+    const ingredientList = activeItems
+      .map((item) => `${item.quantity}x ${item.product.name} (${item.product.unit})`)
+      .join(', ');
+
     const data = await callLlama([
       {
         role: 'user',
-        content: `Suggest 5 recipes that use ${ingredient.trim()} as a main ingredient.
+        content: `I have the following vegetables in my cart: ${ingredientList}.
+Suggest 5 recipes I could make using some or all of these ingredients.
 For each recipe provide: name, brief description, and a list of ingredients.
 Format your response as a JSON array like this:
 [
@@ -43,29 +57,26 @@ Only respond with the JSON array, no extra text.`,
       },
     ]);
 
-    // The API returns the reply in result.result or similar — try to parse JSON from it
     const text = data.result || data.message || data.text || '';
     let recipes = [];
 
     try {
-      // Extract JSON array from the response text
       const match = text.match(/\[[\s\S]*\]/);
       if (match) {
         recipes = JSON.parse(match[0]);
       }
     } catch {
-      // If parsing fails, return the raw text so the client still gets something
-      return res.json({ ingredient, recipes: [], raw: text });
+      return res.json({ items: ingredientList, recipes: [], raw: text });
     }
 
-    return res.json({ ingredient, recipes });
+    return res.json({ items: ingredientList, recipes });
   } catch (err) {
     return res.status(500).json({ message: 'Failed to fetch recipes', error: err.message });
   }
 };
 
 // GET /api/recipes/:name
-// Get a full recipe with step-by-step instructions for a named dish
+// Get a full recipe with step-by-step instructions for a named dish.
 const getRecipeByName = async (req, res) => {
   const name = decodeURIComponent(req.params.name);
 
@@ -108,4 +119,4 @@ Only respond with the JSON object, no extra text.`,
   }
 };
 
-module.exports = { getRecipesByIngredient, getRecipeByName };
+module.exports = { getRecipesFromCart, getRecipeByName };

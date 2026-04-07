@@ -1,12 +1,9 @@
 // AI assistant chatbox using the RapidAPI LLaMA endpoint.
-// The assistant is scoped to a vegetable ordering context.
+// The system prompt is configurable in src/config/prompts.js.
+// The user's current cart is automatically injected into the system context.
 
-const SYSTEM_PROMPT = {
-  role: 'user',
-  content: `You are a helpful assistant for a vegetable ordering service.
-You help customers with questions about vegetables, their orders, recipes, and general cooking advice.
-Keep responses concise and friendly.`,
-};
+const { CHAT_SYSTEM_PROMPT } = require('../config/prompts');
+const Basket = require('../models/Basket');
 
 // POST /api/chat
 // Body: { messages: [{ role: 'user'|'assistant', content: string }] }
@@ -18,7 +15,6 @@ const chat = async (req, res) => {
     return res.status(400).json({ message: 'messages array is required' });
   }
 
-  // Validate each message has role and content
   for (const msg of messages) {
     if (!msg.role || !msg.content) {
       return res.status(400).json({ message: 'Each message must have role and content' });
@@ -29,6 +25,24 @@ const chat = async (req, res) => {
   }
 
   try {
+    // Fetch the user's basket to give the AI context about what they have
+    const basket = await Basket.findOne({ user: req.user._id }).populate(
+      'items.product',
+      'name unit isActive'
+    );
+
+    const activeItems = basket
+      ? basket.items.filter((item) => item.product && item.product.isActive)
+      : [];
+
+    let systemContent = CHAT_SYSTEM_PROMPT;
+    if (activeItems.length > 0) {
+      const cartSummary = activeItems
+        .map((item) => `${item.quantity}x ${item.product.name} (${item.product.unit})`)
+        .join(', ');
+      systemContent += `\n\nThe user currently has the following items in their cart: ${cartSummary}.`;
+    }
+
     const response = await fetch('https://open-ai21.p.rapidapi.com/conversationllama', {
       method: 'POST',
       headers: {
@@ -37,7 +51,7 @@ const chat = async (req, res) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        messages: [SYSTEM_PROMPT, ...messages],
+        messages: [{ role: 'user', content: systemContent }, ...messages],
         web_access: false,
       }),
     });
