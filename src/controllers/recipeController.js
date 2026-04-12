@@ -1,21 +1,20 @@
+const OpenAI = require('openai');
 const Basket = require('../models/Basket');
 
-const callLlama = async (messages) => {
-  const response = await fetch('https://open-ai21.p.rapidapi.com/conversationllama', {
-    method: 'POST',
-    headers: {
-      'x-rapidapi-key': process.env.RAPIDAPI_KEY,
-      'x-rapidapi-host': 'open-ai21.p.rapidapi.com',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ messages, web_access: false }),
+const client = new OpenAI({
+  baseURL: 'https://models.github.ai/inference',
+  apiKey: process.env.GITHUB_TOKEN,
+});
+
+const callModel = async (messages) => {
+  const response = await client.chat.completions.create({
+    model: 'openai/gpt-4o-mini',
+    messages,
+    temperature: 1.0,
+    top_p: 1.0,
+    max_tokens: 1000,
   });
-
-  if (!response.ok) {
-    throw new Error(`RapidAPI error: ${response.status} ${response.statusText}`);
-  }
-
-  return response.json();
+  return response.choices[0].message.content || '';
 };
 
 // GET /api/recipes/from-cart
@@ -39,7 +38,7 @@ const getRecipesFromCart = async (req, res) => {
       .map((item) => `${item.quantity}x ${item.product.name} (${item.product.unit})`)
       .join(', ');
 
-    const data = await callLlama([
+    const text = await callModel([
       {
         role: 'user',
         content: `I have the following vegetables in my cart: ${ingredientList}.
@@ -57,7 +56,6 @@ Only respond with the JSON array, no extra text.`,
       },
     ]);
 
-    const text = data.result || data.message || data.text || '';
     let recipes = [];
 
     try {
@@ -81,7 +79,7 @@ const getRecipeByName = async (req, res) => {
   const name = decodeURIComponent(req.params.name);
 
   try {
-    const data = await callLlama([
+    const text = await callModel([
       {
         role: 'user',
         content: `Give me a full recipe for "${name}". Include:
@@ -100,7 +98,6 @@ Only respond with the JSON object, no extra text.`,
       },
     ]);
 
-    const text = data.result || data.message || data.text || '';
     let recipe = null;
 
     try {

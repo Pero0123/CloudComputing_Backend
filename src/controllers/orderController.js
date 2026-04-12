@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
 const Order = require('../models/Order');
 const Basket = require('../models/Basket');
+const Product = require('../models/Product');
+const { fetchTracking, normalizeTracking } = require('../services/trackingService');
 
 // GET /api/orders  — users see own orders, admins see all
 const getOrders = async (req, res) => {
@@ -49,7 +51,7 @@ const createOrder = async (req, res) => {
   try {
     const basket = await Basket.findOne({ user: req.user._id }).populate(
       'items.product',
-      'name price isActive'
+      'name price isActive stock'
     );
 
     if (!basket || basket.items.length === 0) {
@@ -64,6 +66,52 @@ const createOrder = async (req, res) => {
       return res.status(400).json({
         message: 'Some items in your basket are no longer available. Please review your basket.',
       });
+    }
+
+    // Pre-check stock (readable error for the common case)
+    const insufficientStock = basket.items.filter(
+      (item) => item.product.stock < item.quantity
+    );
+    if (insufficientStock.length > 0) {
+      return res.status(400).json({
+        message: 'Insufficient stock for some items',
+        items: insufficientStock.map((i) => ({
+          productId: i.product._id,
+          productName: i.product.name,
+          requested: i.quantity,
+          available: i.product.stock,
+        })),
+      });
+    }
+
+    // Atomic stock deduction with rollback
+    const deducted = [];
+    try {
+      for (const item of basket.items) {
+        const updated = await Product.findOneAndUpdate(
+          { _id: item.product._id, stock: { $gte: item.quantity } },
+          { $inc: { stock: -item.quantity } },
+          { new: true }
+        );
+        if (!updated) {
+          await Promise.all(
+            deducted.map(({ productId, qty }) =>
+              Product.findByIdAndUpdate(productId, { $inc: { stock: qty } })
+            )
+          );
+          return res.status(409).json({
+            message: `"${item.product.name}" is out of stock or stock is insufficient. Please update your basket.`,
+          });
+        }
+        deducted.push({ productId: item.product._id, qty: item.quantity });
+      }
+    } catch (err) {
+      await Promise.all(
+        deducted.map(({ productId, qty }) =>
+          Product.findByIdAndUpdate(productId, { $inc: { stock: qty } })
+        )
+      ).catch(console.error);
+      return res.status(500).json({ message: 'Server error', error: err.message });
     }
 
     // Build order items with price snapshots
@@ -173,13 +221,25 @@ const updateOrderStatus = async (req, res) => {
   }
 
   try {
-    const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    ).populate('user', 'name email');
-
+    const order = await Order.findById(req.params.id).populate('user', 'name email');
     if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    if (status === 'cancelled' && order.status === 'cancelled') {
+      return res.status(400).json({ message: 'Order is already cancelled' });
+    }
+
+    const previousStatus = order.status;
+    order.status = status;
+    await order.save();
+
+    if (status === 'cancelled' && previousStatus !== 'cancelled') {
+      await Promise.all(
+        order.items.map((item) =>
+          Product.findByIdAndUpdate(item.product, { $inc: { stock: item.quantity } })
+        )
+      );
+    }
+
     return res.json(order);
   } catch (err) {
     return res.status(500).json({ message: 'Server error', error: err.message });
@@ -188,16 +248,31 @@ const updateOrderStatus = async (req, res) => {
 
 // PUT /api/orders/:id/tracking  (admin)
 const updateTracking = async (req, res) => {
-  const { provider, trackingId, trackingUrl, estimatedDelivery, events } = req.body;
+  const { trackingNumber } = req.body;
+
+  if (!trackingNumber) {
+    return res.status(400).json({ message: 'trackingNumber is required' });
+  }
 
   try {
-    const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      { delivery: { provider, trackingId, trackingUrl, estimatedDelivery, events } },
-      { new: true }
-    );
-
+    const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    let delivery;
+    try {
+      const apiData = await fetchTracking(trackingNumber);
+      delivery = normalizeTracking(apiData, trackingNumber);
+    } catch (apiErr) {
+      return res.status(502).json({ message: `Tracking API error: ${apiErr.message}` });
+    }
+
+    order.delivery = delivery;
+
+    if (order.status === 'confirmed') {
+      order.status = 'shipped';
+    }
+
+    await order.save();
     return res.json(order);
   } catch (err) {
     return res.status(500).json({ message: 'Server error', error: err.message });
@@ -214,11 +289,17 @@ const getTracking = async (req, res) => {
       return res.status(403).json({ message: 'Not authorised' });
     }
 
-    if (!order.delivery || !order.delivery.trackingId) {
+    if (!order.delivery?.trackingId) {
       return res.json({ message: 'No tracking information available yet', status: order.status });
     }
 
-    return res.json({ status: order.status, delivery: order.delivery });
+    try {
+      const apiData = await fetchTracking(order.delivery.trackingId);
+      const delivery = normalizeTracking(apiData, order.delivery.trackingId);
+      return res.json({ status: order.status, delivery });
+    } catch (apiErr) {
+      return res.json({ status: order.status, delivery: order.delivery, cached: true });
+    }
   } catch (err) {
     return res.status(500).json({ message: 'Server error', error: err.message });
   }

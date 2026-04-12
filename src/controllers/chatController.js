@@ -1,9 +1,15 @@
-// AI assistant chatbox using the RapidAPI LLaMA endpoint.
+// AI assistant chatbox using the GitHub AI inference endpoint (gpt-4o-mini).
 // The system prompt is configurable in src/config/prompts.js.
 // The user's current cart is automatically injected into the system context.
 
+const OpenAI = require('openai');
 const { CHAT_SYSTEM_PROMPT } = require('../config/prompts');
 const Basket = require('../models/Basket');
+
+const client = new OpenAI({
+  baseURL: 'https://models.github.ai/inference',
+  apiKey: process.env.GITHUB_TOKEN,
+});
 
 // POST /api/chat
 // Body: { messages: [{ role: 'user'|'assistant', content: string }] }
@@ -43,26 +49,15 @@ const chat = async (req, res) => {
       systemContent += `\n\nThe user currently has the following items in their cart: ${cartSummary}.`;
     }
 
-    const response = await fetch('https://open-ai21.p.rapidapi.com/conversationllama', {
-      method: 'POST',
-      headers: {
-        'x-rapidapi-key': process.env.RAPIDAPI_KEY,
-        'x-rapidapi-host': 'open-ai21.p.rapidapi.com',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        messages: [{ role: 'user', content: systemContent }, ...messages],
-        web_access: false,
-      }),
+    const response = await client.chat.completions.create({
+      model: 'openai/gpt-4o-mini',
+      messages: [{ role: 'system', content: systemContent }, ...messages],
+      temperature: 1.0,
+      top_p: 1.0,
+      max_tokens: 1000,
     });
 
-    if (!response.ok) {
-      return res.status(502).json({ message: `AI service error: ${response.statusText}` });
-    }
-
-    const data = await response.json();
-    const reply = data.result || data.message || data.text || '';
-
+    const reply = response.choices[0].message.content || '';
     return res.json({ reply });
   } catch (err) {
     return res.status(500).json({ message: 'Server error', error: err.message });

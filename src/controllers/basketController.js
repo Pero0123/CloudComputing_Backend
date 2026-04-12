@@ -6,7 +6,7 @@ const getBasket = async (req, res) => {
   try {
     const basket = await Basket.findOne({ user: req.user._id }).populate(
       'items.product',
-      'name price unit image isActive'
+      'name price unit image isActive stock'
     );
 
     if (!basket) return res.json({ user: req.user._id, items: [], total: 0 });
@@ -60,7 +60,7 @@ const addItem = async (req, res) => {
       await basket.save();
     }
 
-    await basket.populate('items.product', 'name price unit image');
+    await basket.populate('items.product', 'name price unit image stock');
     return res.json(basket);
   } catch (err) {
     return res.status(500).json({ message: 'Server error', error: err.message });
@@ -85,7 +85,7 @@ const updateItem = async (req, res) => {
 
     item.quantity = quantity;
     await basket.save();
-    await basket.populate('items.product', 'name price unit image');
+    await basket.populate('items.product', 'name price unit image stock');
     return res.json(basket);
   } catch (err) {
     return res.status(500).json({ message: 'Server error', error: err.message });
@@ -102,7 +102,7 @@ const removeItem = async (req, res) => {
       (item) => item.product.toString() !== req.params.productId
     );
     await basket.save();
-    await basket.populate('items.product', 'name price unit image');
+    await basket.populate('items.product', 'name price unit image stock');
     return res.json(basket);
   } catch (err) {
     return res.status(500).json({ message: 'Server error', error: err.message });

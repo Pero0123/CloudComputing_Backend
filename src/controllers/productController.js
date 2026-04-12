@@ -44,6 +44,11 @@ const createProduct = async (req, res) => {
 
 // PUT /api/products/:id  (admin)
 const updateProduct = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
   try {
     const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
       new: true,

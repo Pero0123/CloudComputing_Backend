@@ -32,6 +32,7 @@ const deliveryTrackingSchema = new mongoose.Schema(
   {
     provider: String,
     trackingId: String,
+    carrier: String,
     trackingUrl: String,
     estimatedDelivery: Date,
     events: [
