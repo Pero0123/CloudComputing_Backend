@@ -35,7 +35,8 @@ const createProduct = async (req, res) => {
   }
 
   try {
-    const product = await Product.create(req.body);
+    const { name, description, category, unit, price, image, stock } = req.body;
+    const product = await Product.create({ name, description, category, unit, price, image, stock });
     return res.status(201).json(product);
   } catch (err) {
     return res.status(500).json({ message: 'Server error', error: err.message });
@@ -50,7 +51,11 @@ const updateProduct = async (req, res) => {
   }
 
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+    const { name, description, category, unit, price, image, stock, isActive } = req.body;
+    const updates = { name, description, category, unit, price, image, stock, isActive };
+    Object.keys(updates).forEach((k) => updates[k] === undefined && delete updates[k]);
+
+    const product = await Product.findByIdAndUpdate(req.params.id, updates, {
       new: true,
       runValidators: true,
     });

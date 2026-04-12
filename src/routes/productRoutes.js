@@ -16,6 +16,7 @@ const productCreateValidation = [
   body('unit').isIn(['kg', 'g', 'bunch', 'head', 'each']).withMessage('Invalid unit'),
   body('price').isFloat({ min: 0 }).withMessage('Price must be a positive number'),
   body('stock').isFloat({ min: 0 }).withMessage('Stock must be a non-negative number'),
+  body('image').optional().isString().withMessage('Image must be a string'),
 ];
 
 const productUpdateValidation = [
@@ -23,6 +24,7 @@ const productUpdateValidation = [
   body('unit').optional().isIn(['kg', 'g', 'bunch', 'head', 'each']).withMessage('Invalid unit'),
   body('price').optional().isFloat({ min: 0 }).withMessage('Price must be a positive number'),
   body('stock').optional().isFloat({ min: 0 }).withMessage('Stock must be a non-negative number'),
+  body('image').optional().isString().withMessage('Image must be a string'),
 ];
 
 // Public
