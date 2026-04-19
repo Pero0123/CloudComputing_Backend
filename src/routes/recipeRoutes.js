@@ -6,10 +6,10 @@ const router = express.Router();
 
 router.use(protect);
 
-// GET /api/recipes/from-cart — generate recipes from the user's current basket
+//Get /api/recipes/from-cart  generate recipes from the user's current basket
 router.get('/from-cart', getRecipesFromCart);
 
-// GET /api/recipes/:name — get full recipe for a named dish
+//Get /api/recipes/:name get 
 router.get('/:name', getRecipeByName);
 
 module.exports = router;

@@ -27,13 +27,18 @@ const productUpdateValidation = [
   body('image').optional().isString().withMessage('Image must be a string'),
 ];
 
-// Public
+//public route
 router.get('/', getProducts);
 router.get('/:id', getProduct);
 
-// Admin only
+//get recomended products
+router.get('/recomendedProducts');
+
+//admin routes
 router.post('/', protect, adminOnly, productCreateValidation, createProduct);
 router.put('/:id', protect, adminOnly, productUpdateValidation, updateProduct);
 router.delete('/:id', protect, adminOnly, deleteProduct);
+
+
 
 module.exports = router;

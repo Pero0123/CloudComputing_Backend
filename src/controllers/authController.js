@@ -8,7 +8,7 @@ const generateToken = (user) =>
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   });
 
-// POST /api/auth/register
+//post /api/auth/register
 const register = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -42,7 +42,7 @@ const register = async (req, res) => {
   }
 };
 
-// POST /api/auth/login
+//post /api/auth/login
 const login = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -76,7 +76,7 @@ const login = async (req, res) => {
   }
 };
 
-// GET /api/auth/me  (protected)
+//get /api/auth/me.  jwt protected
 const getMe = async (req, res) => {
   const user = req.user;
   return res.json({
@@ -89,7 +89,7 @@ const getMe = async (req, res) => {
   });
 };
 
-// PUT /api/auth/me  (protected)
+//put /api/auth/me. jwt protected
 const updateMe = async (req, res) => {
   const { name, phone, address } = req.body;
 

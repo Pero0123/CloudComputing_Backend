@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.use(protect);
 
-// POST /api/chat
+//post /api/chat
 router.post('/', chat);
 
 module.exports = router;

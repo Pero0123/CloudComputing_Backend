@@ -8,7 +8,7 @@ const orderItemSchema = new mongoose.Schema(
       required: true,
     },
     productName: {
-      type: String, // snapshot so display stays correct even if product is renamed
+      type: String, 
       required: true,
     },
     quantity: {
@@ -67,18 +67,14 @@ const orderSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
-    // Order lifecycle:
-    //   Normal:  awaiting_photo → photo_review → approved → confirmed → shipped → delivered
-    //   Denied:  photo_review → denied → awaiting_photo (admin re-picks) → ...
-    //   Skipped: awaiting_photo → confirmed → shipped → delivered
     status: {
       type: String,
       enum: [
-        'awaiting_photo', // customer submitted, admin needs to pick & photograph
-        'photo_review',   // admin uploaded photo, customer reviewing
-        'approved',       // customer approved the pick
-        'denied',         // customer denied, admin must re-pick
-        'confirmed',      // order confirmed — either approved or approval skipped
+        'awaiting_photo', 
+        'photo_review',   
+        'approved',       
+        'denied',         
+        'confirmed',      
         'shipped',
         'delivered',
         'cancelled',
@@ -87,10 +83,10 @@ const orderSchema = new mongoose.Schema(
     },
     skipApproval: {
       type: Boolean,
-      default: false, // if true, order jumps straight to confirmed on creation
+      default: false, // if true order will jumps straight to confirmed on creation
     },
     adminPhoto: {
-      type: String, // Base64 or URL — photo of the picked/packed order
+      type: String, // base 64 encoded image
       default: null,
     },
     deliveryAddress: {

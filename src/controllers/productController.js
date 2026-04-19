@@ -1,7 +1,7 @@
 const { validationResult } = require('express-validator');
 const Product = require('../models/Product');
 
-// GET /api/products
+//Get /api/products
 const getProducts = async (req, res) => {
   try {
     const filter = { isActive: true };
@@ -14,7 +14,7 @@ const getProducts = async (req, res) => {
   }
 };
 
-// GET /api/products/:id
+//Get /api/products/:id
 const getProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -27,12 +27,13 @@ const getProduct = async (req, res) => {
   }
 };
 
-// POST /api/products  (admin)
+//Post /api/products. admin
 const createProduct = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
+  
 
   try {
     const { name, description, category, unit, price, image, stock } = req.body;
@@ -43,7 +44,7 @@ const createProduct = async (req, res) => {
   }
 };
 
-// PUT /api/products/:id  (admin)
+//Put /api/products/:id. admin route
 const updateProduct = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -66,7 +67,7 @@ const updateProduct = async (req, res) => {
   }
 };
 
-// DELETE /api/products/:id  (admin) — soft delete
+//Delete /api/products/:id admin. remove but not delete.
 const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findByIdAndUpdate(

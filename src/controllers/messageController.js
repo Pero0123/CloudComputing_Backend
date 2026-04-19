@@ -1,7 +1,7 @@
 const Message = require('../models/Message');
 const Order = require('../models/Order');
 
-// Verify the requesting user has access to this order (owner or admin)
+// check if the loggedi n user has acces to this order. user/admin
 const canAccessOrder = async (orderId, user) => {
   const order = await Order.findById(orderId).select('user');
   if (!order) return null;
@@ -10,7 +10,7 @@ const canAccessOrder = async (orderId, user) => {
   return null;
 };
 
-// GET /api/orders/:orderId/messages
+//Get /api/orders/:orderId/messages
 const getMessages = async (req, res) => {
   try {
     const order = await canAccessOrder(req.params.orderId, req.user);
@@ -26,7 +26,7 @@ const getMessages = async (req, res) => {
   }
 };
 
-// POST /api/orders/:orderId/messages
+//Post /api/orders/:orderId/messages
 const sendMessage = async (req, res) => {
   const { text } = req.body;
   if (!text || !text.trim()) {

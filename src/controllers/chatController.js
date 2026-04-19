@@ -1,6 +1,6 @@
-// AI assistant chatbox using the GitHub AI inference endpoint (gpt-4o-mini).
-// The system prompt is configurable in src/config/prompts.js.
-// The user's current cart is automatically injected into the system context.
+// AI chatbox using the github AI endpoint using the gpt4o model
+//the prompt can be configured in prompts.js.
+//the cart items are automatically added to the payload.
 
 const OpenAI = require('openai');
 const { CHAT_SYSTEM_PROMPT } = require('../config/prompts');
@@ -11,9 +11,8 @@ const client = new OpenAI({
   apiKey: process.env.GITHUB_TOKEN,
 });
 
-// POST /api/chat
-// Body: { messages: [{ role: 'user'|'assistant', content: string }] }
-// The client maintains the conversation history and sends it with each request.
+//post /api/chat
+//data body: { messages: [{ role: 'user'|'assistant',content: string }] }
 const chat = async (req, res) => {
   const { messages } = req.body;
 
@@ -31,7 +30,7 @@ const chat = async (req, res) => {
   }
 
   try {
-    // Fetch the user's basket to give the AI context about what they have
+    //fetch the users basket to give the AI context about what they have
     const basket = await Basket.findOne({ user: req.user._id }).populate(
       'items.product',
       'name unit isActive'

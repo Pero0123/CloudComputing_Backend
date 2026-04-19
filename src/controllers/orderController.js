@@ -174,8 +174,8 @@ const uploadPhoto = async (req, res) => {
   }
 };
 
-// PUT /api/orders/:id/approval  (customer — own order only)
-// Customer approves or denies the admin's photo.
+//Put /api/orders/:id/approval. custumer can view own orders only
+//customer approves or denies the admins photo.
 const reviewPhoto = async (req, res) => {
   const { approved } = req.body;
   if (typeof approved !== 'boolean') {
@@ -208,8 +208,8 @@ const reviewPhoto = async (req, res) => {
   }
 };
 
-// PUT /api/orders/:id/status  (admin)
-// Advances order through confirmed → shipped → delivered, or cancels.
+//Put /api/orders/:id/status. 
+// order status can be advanced through: shipped, delivered and canceled.
 const updateOrderStatus = async (req, res) => {
   const { status } = req.body;
   const adminStatuses = ['confirmed', 'shipped', 'delivered', 'cancelled'];
@@ -246,7 +246,7 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
-// PUT /api/orders/:id/tracking  (admin)
+//Put /api/orders/:id/tracking. admin
 const updateTracking = async (req, res) => {
   const { trackingNumber } = req.body;
 
@@ -279,7 +279,7 @@ const updateTracking = async (req, res) => {
   }
 };
 
-// GET /api/orders/:id/tracking
+//Get /api/orders/:id/tracking
 const getTracking = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id).select('delivery status user');

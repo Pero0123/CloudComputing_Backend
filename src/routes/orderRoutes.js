@@ -30,13 +30,13 @@ router.post(
   createOrder
 );
 
-// Admin: upload photo of picked order
+//photo upload for admin
 router.put('/:id/photo', adminOnly, uploadPhoto);
 
-// Customer: approve or deny the photo
+//deny/approach order photo for customer
 router.put('/:id/approval', reviewPhoto);
 
-// Admin: advance order status
+//orderstatus update for admin
 router.put('/:id/status', adminOnly, updateOrderStatus);
 router.put('/:id/tracking', adminOnly, updateTracking);
 

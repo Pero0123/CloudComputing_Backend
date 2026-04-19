@@ -12,6 +12,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const recipeRoutes = require('./routes/recipeRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const specialsRoutes = require('./routes/specialsRoutes');
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/orders/:orderId/messages', messageRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/specials', specialsRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });

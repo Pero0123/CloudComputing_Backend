@@ -1,7 +1,7 @@
 const Basket = require('../models/Basket');
 const Product = require('../models/Product');
 
-// GET /api/basket
+//Get /api/basket
 const getBasket = async (req, res) => {
   try {
     const basket = await Basket.findOne({ user: req.user._id }).populate(
@@ -28,7 +28,7 @@ const getBasket = async (req, res) => {
   }
 };
 
-// POST /api/basket/items  — add or increment a product
+//Post /api/basket/items  adds item to basket. if already present it increments the item
 const addItem = async (req, res) => {
   const { productId, quantity = 1 } = req.body;
 
@@ -67,7 +67,7 @@ const addItem = async (req, res) => {
   }
 };
 
-// PUT /api/basket/items/:productId  — set exact quantity
+//Put /api/basket/items/:productId 
 const updateItem = async (req, res) => {
   const { quantity } = req.body;
   if (!quantity || quantity < 1) {
@@ -92,7 +92,7 @@ const updateItem = async (req, res) => {
   }
 };
 
-// DELETE /api/basket/items/:productId  — remove a single product
+//Delete /api/basket/items/:productId  remove product from baskes
 const removeItem = async (req, res) => {
   try {
     const basket = await Basket.findOne({ user: req.user._id });
@@ -109,7 +109,7 @@ const removeItem = async (req, res) => {
   }
 };
 
-// DELETE /api/basket  — clear the whole basket
+//delete /api/basket. clear the whole basket
 const clearBasket = async (req, res) => {
   try {
     await Basket.findOneAndUpdate(
