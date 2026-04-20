@@ -1,5 +1,8 @@
 const { validationResult } = require('express-validator');
 const Product = require('../models/Product');
+const { generateSpecials } = require('./specialsController');
+
+const regenSpecials = () => generateSpecials().catch(err => console.error('specials regen failed:', err.message));
 
 //Get /api/products
 const getProducts = async (req, res) => {
@@ -38,6 +41,7 @@ const createProduct = async (req, res) => {
   try {
     const { name, description, category, unit, price, image, stock } = req.body;
     const product = await Product.create({ name, description, category, unit, price, image, stock });
+    regenSpecials();
     return res.status(201).json(product);
   } catch (err) {
     return res.status(500).json({ message: 'Server error', error: err.message });
@@ -61,6 +65,7 @@ const updateProduct = async (req, res) => {
       runValidators: true,
     });
     if (!product) return res.status(404).json({ message: 'Product not found' });
+    regenSpecials();
     return res.json(product);
   } catch (err) {
     return res.status(500).json({ message: 'Server error', error: err.message });
@@ -76,6 +81,7 @@ const deleteProduct = async (req, res) => {
       { new: true }
     );
     if (!product) return res.status(404).json({ message: 'Product not found' });
+    regenSpecials();
     return res.json({ message: 'Product removed' });
   } catch (err) {
     return res.status(500).json({ message: 'Server error', error: err.message });

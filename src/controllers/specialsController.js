@@ -99,42 +99,38 @@ async function generateSpecials() {
 
 const regenerateSpecials = async (req, res) => {
   try {
-    const special = await generateSpecials();
-    return res.json(special);
+    await generateSpecials();
+    return res.sendStatus(204);
   } catch (err) {
     return res.status(500).json({ message: 'Failed to regenerate specials', error: err.message });
   }
 };
 
 
-//Get generated specials. if specials dont exist it calls the generateSpecials function to generate them for the first time
+// get generated specials. if none exist, generates them first
 const getSpecials = async (req, res) => {
   try {
-    let special = await Special.findOne()
-      .populate('popular')
-      .populate('overstocked')
-      .populate('random');
+    let doc = await Special.findOne();
+    if (!doc) doc = await generateSpecials();
 
-    if (!special) {
-      const generated = await generateSpecials();
-      special = await Special.findById(generated._id)
-        .populate('popular')
-        .populate('overstocked')
-        .populate('random');
-    }
+    const [popular, overstocked, random] = await Promise.all([
+      Product.find({ _id: { $in: doc.popular }, isActive: true }),
+      Product.find({ _id: { $in: doc.overstocked }, isActive: true }),
+      Product.findOne({ _id: doc.random, isActive: true }),
+    ]);
 
-    return res.json(special);
+    return res.json({ popular, overstocked, random, generatedAt: doc.generatedAt });
   } catch (err) {
     return res.status(500).json({ message: 'Failed to fetch specials', error: err.message });
   }
 };
 
 // regenerate specials once per minute
-cron.schedule('* * * * *', () => {
+cron.schedule('*/10 * * * *', () => {
   console.log('cron: regenerating specials...');
   generateSpecials()
     .then(() => console.log('cron: specials regenerated successfully'))
     .catch(err => console.error('cron: failed to regenerate specials:', err.message));
 });
 
-module.exports = { regenerateSpecials, getSpecials };
+module.exports = { regenerateSpecials, getSpecials, generateSpecials };
