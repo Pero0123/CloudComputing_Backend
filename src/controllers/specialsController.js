@@ -106,18 +106,17 @@ const regenerateSpecials = async (req, res) => {
 //Get generated specials. if specials dont exist it calls the generateSpecials function to generate them for the first time
 const getSpecials = async (req, res) => {
   try {
-    const populateFields = 'name price unit image stock isActive';
     let special = await Special.findOne()
-      .populate('popular', populateFields)
-      .populate('overstocked', populateFields)
-      .populate('random', populateFields);
+      .populate('popular')
+      .populate('overstocked')
+      .populate('random');
 
     if (!special) {
       const generated = await generateSpecials();
       special = await Special.findById(generated._id)
-        .populate('popular', populateFields)
-        .populate('overstocked', populateFields)
-        .populate('random', populateFields);
+        .populate('popular')
+        .populate('overstocked')
+        .populate('random');
     }
 
     return res.json(special);
