@@ -33,12 +33,13 @@ async function gatherProductData() {
     }
   }
 
-  return products.map(p => ({
-    id: p._id.toString(),
+  return products.map((p, i) => ({
+    index: i,
     name: p.name,
     stock: p.stock,
     totalOrdered: orderTotals.get(p._id.toString()) || 0,
     basketCount: basketTotals.get(p._id.toString()) || 0,
+    _id: p._id.toString(),
   }));
 }
 
@@ -49,14 +50,14 @@ async function generateSpecials() {
       throw new Error('Not enough active products to generate specials (minimum 6 required)');
     }
 
-    const userMessage = `Here is the product data:\n${JSON.stringify(productData)}\n\n${PRODUCT_RECOMENDATION_PROMPT}`;
+    const userMessage = `Here is the product data (${productData.length} products, indices 0 to ${productData.length - 1}):\n${JSON.stringify(productData)}\n\n${PRODUCT_RECOMENDATION_PROMPT}`;
 
     const response = await client.chat.completions.create({
       model: 'openai/gpt-4o-mini',
       messages: [{ role: 'user', content: userMessage }],
-      temperature: 1.0,
+      temperature: 0.2,
       top_p: 1.0,
-      max_tokens: 1000,
+      max_tokens: 200,
     });
 
     const text = response.choices[0].message.content || '';
@@ -69,16 +70,19 @@ async function generateSpecials() {
       throw new Error('AI response missing popular, overstocked, or random fields');
     }
 
-    const validIds = new Set(productData.map(p => p.id));
+    const validIndex = i => Number.isInteger(i) && i >= 0 && i < productData.length;
+    const toId = i => productData[i]._id;
 
-    const popularIds = parsed.popular.filter(id => validIds.has(id)).slice(0, 3);
+    const popularIds = parsed.popular.filter(validIndex).slice(0, 3).map(toId);
+    const popularIndices = new Set(parsed.popular.filter(validIndex).slice(0, 3));
     const overstockedIds = parsed.overstocked
-      .filter(id => validIds.has(id) && !popularIds.includes(id))
-      .slice(0, 2);
-    const randomId = validIds.has(parsed.random) ? parsed.random : null;
+      .filter(i => validIndex(i) && !popularIndices.has(i))
+      .slice(0, 2)
+      .map(toId);
+    const randomId = validIndex(parsed.random) && !popularIndices.has(parsed.random) ? toId(parsed.random) : null;
 
     if (popularIds.length < 3 || overstockedIds.length < 2 || !randomId) {
-      throw new Error('AI returned insufficient valid product IDs');
+      throw new Error('AI returned insufficient valid product indices');
     }
 
     await Special.deleteMany({});
