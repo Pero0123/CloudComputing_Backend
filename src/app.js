@@ -11,7 +11,6 @@ const basketRoutes = require('./routes/basketRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const recipeRoutes = require('./routes/recipeRoutes');
-const chatRoutes = require('./routes/chatRoutes');
 const specialsRoutes = require('./routes/specialsRoutes');
 
 const app = express();
@@ -23,18 +22,17 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(morgan('dev'));
 
-app.get('/api/status', (req, res) => {
+app.get('/backend/status', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.use('/api/auth', authRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/basket', basketRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/orders/:orderId/messages', messageRoutes);
-app.use('/api/recipes', recipeRoutes);
-app.use('/api/chat', chatRoutes);
-app.use('/api/specials', specialsRoutes);
+app.use('/backend/auth', authRoutes);
+app.use('/backend/products', productRoutes);
+app.use('/backend/basket', basketRoutes);
+app.use('/backend/orders', orderRoutes);
+app.use('/backend/orders/:orderId/messages', messageRoutes);
+app.use('/backend/recipes', recipeRoutes);
+app.use('/backend/specials', specialsRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' });

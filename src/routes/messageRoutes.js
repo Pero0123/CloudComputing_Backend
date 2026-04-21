@@ -2,7 +2,7 @@ const express = require('express');
 const { getMessages, sendMessage } = require('../controllers/messageController');
 const { protect } = require('../middleware/authMiddleware');
 
-// Mounted at /api/orders/:orderId/messages
+// Mounted at /backend/orders/:orderId/messages
 const router = express.Router({ mergeParams: true });
 
 router.use(protect);

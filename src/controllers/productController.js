@@ -4,7 +4,7 @@ const { generateSpecials } = require('./specialsController');
 
 const regenSpecials = () => generateSpecials().catch(err => console.error('specials regen failed:', err.message));
 
-//Get /api/products
+//Get /backend/products
 const getProducts = async (req, res) => {
   try {
     const filter = { isActive: true };
@@ -17,7 +17,7 @@ const getProducts = async (req, res) => {
   }
 };
 
-//Get /api/products/:id
+//Get /backend/products/:id
 const getProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
@@ -30,7 +30,7 @@ const getProduct = async (req, res) => {
   }
 };
 
-//Post /api/products. admin
+//Post /backend/products. admin
 const createProduct = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -48,7 +48,7 @@ const createProduct = async (req, res) => {
   }
 };
 
-//Put /api/products/:id. admin route
+//Put /backend/products/:id. admin route
 const updateProduct = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -72,7 +72,7 @@ const updateProduct = async (req, res) => {
   }
 };
 
-//Delete /api/products/:id admin. remove but not delete.
+//Delete /backend/products/:id admin. remove but not delete.
 const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findByIdAndUpdate(

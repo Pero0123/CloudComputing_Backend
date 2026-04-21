@@ -5,7 +5,7 @@ const Basket = require('../models/Basket');
 const Product = require('../models/Product');
 const { fetchTracking, normalizeTracking } = require('../services/trackingService');
 
-// GET /api/orders  — users see own orders, admins see all
+// GET /backend/orders  — users see own orders, admins see all
 const getOrders = async (req, res) => {
   try {
     const filter = req.user.role === 'admin' ? {} : { user: req.user._id };
@@ -20,7 +20,7 @@ const getOrders = async (req, res) => {
   }
 };
 
-// GET /api/orders/:id
+// GET /backend/orders/:id
 const getOrder = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id).populate('user', 'name email');
@@ -36,7 +36,7 @@ const getOrder = async (req, res) => {
   }
 };
 
-// POST /api/orders
+// POST /backend/orders
 // Converts the user's current basket into an order.
 // If skipApproval is true the order goes straight to 'confirmed'.
 // Otherwise the order starts as 'awaiting_photo' — admin picks, photographs, customer approves.
@@ -147,7 +147,7 @@ const createOrder = async (req, res) => {
   }
 };
 
-// PUT /api/orders/:id/photo  (admin)
+// PUT /backend/orders/:id/photo  (admin)
 // Admin uploads a photo of the picked/packed order.
 // Moves status from 'awaiting_photo' or 'denied' → 'photo_review'.
 const uploadPhoto = async (req, res) => {
@@ -174,7 +174,7 @@ const uploadPhoto = async (req, res) => {
   }
 };
 
-//Put /api/orders/:id/approval. custumer can view own orders only
+//Put /backend/orders/:id/approval. custumer can view own orders only
 //customer approves or denies the admins photo.
 const reviewPhoto = async (req, res) => {
   const { approved } = req.body;
@@ -208,7 +208,7 @@ const reviewPhoto = async (req, res) => {
   }
 };
 
-//Put /api/orders/:id/status. 
+//Put /backend/orders/:id/status. 
 // order status can be advanced through: shipped, delivered and canceled.
 const updateOrderStatus = async (req, res) => {
   const { status } = req.body;
@@ -246,7 +246,7 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
-//Put /api/orders/:id/tracking. admin
+//Put /backend/orders/:id/tracking. admin
 const updateTracking = async (req, res) => {
   const { trackingNumber } = req.body;
 
@@ -279,7 +279,7 @@ const updateTracking = async (req, res) => {
   }
 };
 
-//Get /api/orders/:id/tracking
+//Get /backend/orders/:id/tracking
 const getTracking = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id).select('delivery status user');

@@ -18,7 +18,7 @@ const callModel = async (messages) => {
   return response.choices[0].message.content || '';
 };
 
-//get /api/recipes/from-cart
+//get /backend/recipes/from-cart
 //generates 5 recipe suggestions based on what is currently in the users basket.
 const getRecipesFromCart = async (req, res) => {
   try {
@@ -60,7 +60,7 @@ const getRecipesFromCart = async (req, res) => {
   }
 };
 
-//get /api/recipes/:name
+//get /backend/recipes/:name
 //get a list of 5 recipe ideas
 const getRecipeByName = async (req, res) => {
   const name = decodeURIComponent(req.params.name);

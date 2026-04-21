@@ -6,10 +6,10 @@ const router = express.Router();
 
 router.use(protect);
 
-// GET /api/specials
+// GET /backend/specials
 router.get('/', getSpecials);
 
-// POST /api/specials/regenerate
+// POST /backend/specials/regenerate
 router.post('/regenerate', adminOnly, regenerateSpecials);
 
 module.exports = router;

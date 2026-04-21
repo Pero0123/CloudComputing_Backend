@@ -10,7 +10,7 @@ const canAccessOrder = async (orderId, user) => {
   return null;
 };
 
-//Get /api/orders/:orderId/messages
+//Get /backend/orders/:orderId/messages
 const getMessages = async (req, res) => {
   try {
     const order = await canAccessOrder(req.params.orderId, req.user);
@@ -26,7 +26,7 @@ const getMessages = async (req, res) => {
   }
 };
 
-//Post /api/orders/:orderId/messages
+//Post /backend/orders/:orderId/messages
 const sendMessage = async (req, res) => {
   const { text } = req.body;
   if (!text || !text.trim()) {

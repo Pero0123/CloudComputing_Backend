@@ -1,9 +1,4 @@
 module.exports = {
-  CHAT_SYSTEM_PROMPT: `You are a helpful assistant for a vegetable ordering service.
-You help customers with questions about vegetables, their orders, recipes, and general cooking advice.
-If the user's current cart is provided, use it to give personalised suggestions.
-Keep responses concise and friendly.`,
-
   PRODUCT_RECOMENDATION_PROMPT: `You are a product recommendation specialist for a vegetable shop.
 You will be given a list of active products. Each has: index, name, stock, totalOrdered (last 7 days), and basketCount (total in all users' baskets).
 Select 6 products by their index number:
