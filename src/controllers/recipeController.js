@@ -1,5 +1,6 @@
 const OpenAI = require('openai');
 const Basket = require('../models/Basket');
+const { RECIPES_FROM_CART_PROMPT, RECIPE_BY_NAME_PROMPT } = require('../config/prompts');
 
 const client = new OpenAI({
   baseURL: 'https://models.github.ai/inference',
@@ -39,21 +40,7 @@ const getRecipesFromCart = async (req, res) => {
       .join(', ');
 
     const text = await callModel([
-      {
-        role: 'user',
-        content: `I have the following vegetables in my cart: ${ingredientList}.
-Suggest 5 recipes I could make using some or all of these ingredients.
-For each recipe provide: name, brief description, and a list of ingredients.
-Format your response as a JSON array like this:
-[
-  {
-    "name": "Recipe Name",
-    "description": "Brief description",
-    "ingredients": ["ingredient 1", "ingredient 2"]
-  }
-]
-Only respond with the JSON array, no extra text.`,
-      },
+      { role: 'user', content: RECIPES_FROM_CART_PROMPT(ingredientList) },
     ]);
 
     let recipes = [];
@@ -80,22 +67,7 @@ const getRecipeByName = async (req, res) => {
 
   try {
     const text = await callModel([
-      {
-        role: 'user',
-        content: `Give me a full recipe for "${name}". Include:
-- A list of ingredients with quantities
-- Step-by-step cooking instructions
-Format your response as JSON like this:
-{
-  "name": "Recipe Name",
-  "servings": "4",
-  "prepTime": "15 minutes",
-  "cookTime": "30 minutes",
-  "ingredients": ["200g ingredient 1", "1 tbsp ingredient 2"],
-  "steps": ["Step 1 description", "Step 2 description"]
-}
-Only respond with the JSON object, no extra text.`,
-      },
+      { role: 'user', content: RECIPE_BY_NAME_PROMPT(name) },
     ]);
 
     let recipe = null;

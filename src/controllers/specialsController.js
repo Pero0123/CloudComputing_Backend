@@ -50,7 +50,8 @@ async function generateSpecials() {
       throw new Error('Not enough active products to generate specials (minimum 6 required)');
     }
 
-    const userMessage = `Here is the product data (${productData.length} products, indices 0 to ${productData.length - 1}):\n${JSON.stringify(productData)}\n\n${PRODUCT_RECOMENDATION_PROMPT}`;
+    const aiData = productData.map(({ _id, ...rest }) => rest);
+    const userMessage = `Here is the product data (${productData.length} products, indices 0 to ${productData.length - 1}):\n${JSON.stringify(aiData)}\n\n${PRODUCT_RECOMENDATION_PROMPT}`;
 
     const response = await client.chat.completions.create({
       model: 'openai/gpt-4o-mini',
@@ -66,7 +67,7 @@ async function generateSpecials() {
 
     const parsed = JSON.parse(match[0]);
 
-    if (!Array.isArray(parsed.popular) || !Array.isArray(parsed.overstocked) || !parsed.random) {
+    if (!Array.isArray(parsed.popular) || !Array.isArray(parsed.overstocked) || parsed.random == null) {
       throw new Error('AI response missing popular, overstocked, or random fields');
     }
 
